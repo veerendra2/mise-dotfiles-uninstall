@@ -1,0 +1,15 @@
+[tasks.fmt]
+description = "Format Go source code"
+run = "go fmt ./..."
+
+[tasks.vet]
+description = "Run go vet static analysis"
+run = "go vet ./..."
+
+[tasks.lint]
+description = "Run golangci-lint static analysis"
+run = "golangci-lint run"
+
+[tasks.build]
+description = "Build production binary"
+run = "go build -o dist/mise-dotfiles-uninstall main.go"

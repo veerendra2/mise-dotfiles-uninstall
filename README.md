@@ -1,73 +1,45 @@
-# Go Project Template
+# mise-dotfiles-uninstall
 
-> Other references
->
-> - https://github.com/thockin/go-build-template/tree/master
-> - https://peter.bourgon.org/go-best-practices-2016/
+The missing uninstaller companion for mise's dotfiles (Until native support).
 
-## Getting Started
+## Why?
 
-Follow below steps after creating a new repository from this template
+According to the [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.html#conflicts):
 
-- [ ] **Initialize Go module:**
+> Removing an entry from config leaves its file, block, or line in place because mise keeps no state database. Delete unmanaged leftovers by hand.
 
-  ```bash
-  go mod init github.com/YOUR_USERNAME/YOUR_PROJECT_NAME
-  go mod tidy
-  ```
+`mise-dotfiles-uninstall` automates this process safely and statelessly by parsing `mise.toml` and unlinking only the configured symbolic targets.
 
-- [ ] **Update app name** in:
+## Usage
 
-  - [ ] [Taskfile.yml](./Taskfile.yml) - `APP_NAME` variable
-  - [ ] [Dockerfile](./Dockerfile) - Binary name and labels
-  - [ ] [main.go](./main.go) - `appName` constant
-  - [ ] [.goreleaser.yml](./.goreleaser.yml) - `project_name` and `binary` name
-  - [ ] [README.md](./README.md) - Title and description
+```text
+$ go run main.go --help
+mise-dotfiles-uninstall - The missing uninstaller companion for mise's dotfiles (Until native support).
 
-- [ ] **Update main file location** (if not using root `main.go`):
+Usage:
+  mise-dotfiles-uninstall [options]
 
-  - [ ] [Taskfile.yml](./Taskfile.yml) - `MAIN_FILE` variable
-  - [ ] [.goreleaser.yml](./.goreleaser.yml) - `main` field under `builds`
-
-- [ ] **Configure Homebrew release** (optional):
-
-  > **Note:** GitHub's default `GITHUB_TOKEN` has limited permissions for tap repositories. See [GoReleaser docs](https://goreleaser.com/errors/resource-not-accessible-by-integration/).
-
-  - [ ] Add `RELEASE_TOKEN` in repository secrets and update in [release workflow](./.github/workflows/release.yml)
-  - [ ] Update [release workflow](./.github/workflows/release.yml) to use the new token
-  - [ ] Update [.goreleaser.yml](./.goreleaser.yml) `brews` section with your tap repository details
-
-- [ ] **Clean up:** Delete this checklist and update README with project documentation
-
-## Build & Test
-
-- Using [Taskfile](https://taskfile.dev/)
-
-_Install Taskfile: [Installation Guide](https://taskfile.dev/docs/installation)_
-
-```bash
-# Available tasks
-task --list
-task: Available tasks for this project:
-* all:                   Run comprehensive checks: format, lint, security and test
-* build:                 Build the application binary for the current platform
-* build-docker:          Build Docker image
-* build-platforms:       Build the application binaries for multiple platforms and architectures
-* fmt:                   Formats all Go source files
-* install:               Install required tools and dependencies
-* lint:                  Run static analysis and code linting using golangci-lint
-* run:                   Runs the main application
-* security:              Run security vulnerability scan
-* test:                  Runs all tests in the project      (aliases: tests)
-* vet:                   Examines Go source code and reports suspicious constructs
+Options:
+  -c string  Path to mise.toml configuration file (default "mise.toml")
+  -v         Display version information
 ```
 
-- Build with [goreleaser](https://goreleaser.com/)
+## Installation
 
-_Install GoReleaser: [Installation Guide](https://goreleaser.com/install/)_
+- **Homebrew**:
+  ```bash
+  brew install veerendra2/tap/mise-dotfiles-uninstall
+  ```
+- **Direct Download**: Download the pre-built binaries directly from the [GitHub Releases](https://github.com/veerendra2/mise-dotfiles-uninstall/releases) page.
 
-```bash
-# Build locally
-goreleaser release --snapshot --clean
-...
+## Development
+
+You can manage the project tasks using `mise`:
+
+```text
+$ mise tasks
+build                    Build production binary
+fmt                      Format Go source code
+lint                     Run golangci-lint static analysis
+vet                      Run go vet static analysis
 ```
