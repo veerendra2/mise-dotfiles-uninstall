@@ -13,15 +13,17 @@ According to the [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.htm
 ## Usage
 
 ```text
-$ go run main.go --help
-mise-dotfiles-uninstall - The missing uninstaller companion for mise's dotfiles (Until native support).
+$ go run main.go -h
+The missing uninstaller companion for mise's dotfiles (Until native support).
 
 Usage:
   mise-dotfiles-uninstall [options]
 
 Options:
-  -c string  Path to mise.toml configuration file (default "mise.toml")
-  -v         Display version information
+  -c string
+    	Path to mise.toml configuration file (default "mise.toml")
+  -d	Show what would be unlinked without deleting (Dry run)
+  -v	Display version information
 ```
 
 ## Installation
