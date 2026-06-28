@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -60,15 +61,54 @@ dotfiles.default_mode = "symlink"
 		t.Fatalf("failed to build binary: %v, output: %s", err, string(output))
 	}
 
-	// Run the compiled binary using our flags and environment variables
-	cmd := exec.Command(binPath, "-c", configFile)
-	cmd.Dir = tempWorkspace
-	cmd.Env = append(os.Environ(), "HOME="+mockHome) // Override HOME env to test tilde expansion
+	// 1. Run the compiled binary using our flags (with -d) and environment variables
+	cmdDry := exec.Command(binPath, "-c", configFile, "-d")
+	cmdDry.Dir = tempWorkspace
+	cmdDry.Env = append(os.Environ(), "HOME="+mockHome) // Override HOME env to test tilde expansion
 
-	if output, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("binary execution failed: %v, output: %s", err, string(output))
+	dryOutput, err := cmdDry.CombinedOutput()
+	if err != nil {
+		t.Fatalf("dry run binary execution failed: %v, output: %s", err, string(dryOutput))
 	}
 
+	dryStr := string(dryOutput)
+	if !strings.Contains(dryStr, "✓ Would unlink: ~/.bashrc") {
+		t.Errorf("dry-run output should list ~/.bashrc, got:\n%s", dryStr)
+	}
+	if !strings.Contains(dryStr, "✓ Would unlink: ~/.config/fish/config.fish") {
+		t.Errorf("dry-run output should list fish config, got:\n%s", dryStr)
+	}
+	if strings.Contains(dryStr, "All symlinks are removed.") {
+		t.Errorf("dry-run output should not print completion message")
+	}
+
+	// Verify symlinks physically still exist
+	if _, err := os.Lstat(targetBashrc); os.IsNotExist(err) {
+		t.Errorf("target bashrc symlink was deleted during dry run")
+	}
+	if _, err := os.Lstat(targetFishConfig); os.IsNotExist(err) {
+		t.Errorf("target fish config symlink was deleted during dry run")
+	}
+
+	// 2. Second execution: Real Run (no -d)
+	cmdReal := exec.Command(binPath, "-c", configFile)
+	cmdReal.Dir = tempWorkspace
+	cmdReal.Env = append(os.Environ(), "HOME="+mockHome)
+
+	realOutput, err := cmdReal.CombinedOutput()
+	if err != nil {
+		t.Fatalf("real run binary execution failed: %v, output: %s", err, string(realOutput))
+	}
+
+	realStr := string(realOutput)
+	if strings.Contains(realStr, "✓ Would unlink:") || strings.Contains(realStr, "✓ Unlinked:") {
+		t.Errorf("real run output should not list details, got:\n%s", realStr)
+	}
+	if !strings.Contains(realStr, "All symlinks are removed.") {
+		t.Errorf("real run output should print completion message, got:\n%s", realStr)
+	}
+
+	// Verify files are physically removed/kept
 	if _, err := os.Lstat(targetBashrc); !os.IsNotExist(err) {
 		t.Errorf("target bashrc symlink was not deleted")
 	}
