@@ -43,5 +43,5 @@ brews:
       token: "{{ .Env.GITHUB_TOKEN }}"
     directory: Formula
     homepage: "https://github.com/veerendra2/mise-dotfiles-uninstall"
-    description: "The missing uninstaller companion for mise's dotfiles. (Until native support)"
+    description: "The missing uninstaller companion for mise's dotfiles (Until native support)."
     license: "MIT"

@@ -1,6 +1,6 @@
 # mise-dotfiles-uninstall
 
-The missing uninstaller companion for mise's dotfiles. (Until native support)
+The missing uninstaller companion for mise's dotfiles (Until native support).
 
 ## Why?
 
@@ -14,7 +14,7 @@ According to the [mise dotfiles documentation](https://mise.jdx.dev/dotfiles.htm
 
 ```text
 $ go run main.go --help
-mise-dotfiles-uninstall - The missing uninstaller companion for mise's dotfiles. (Until native support)
+mise-dotfiles-uninstall - The missing uninstaller companion for mise's dotfiles (Until native support).
 
 Usage:
   mise-dotfiles-uninstall [options]

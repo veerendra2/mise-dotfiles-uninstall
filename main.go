@@ -27,7 +27,7 @@ func main() {
 
 	// Overwrite flag.Usage to display shorthand options only with capitalized descriptions
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "mise-dotfiles-uninstall - The missing uninstaller companion for mise's dotfiles. (Until native support)\n\nUsage:\n  mise-dotfiles-uninstall [options]\n\nOptions:\n")
+		fmt.Fprintf(os.Stderr, "mise-dotfiles-uninstall - The missing uninstaller companion for mise's dotfiles (Until native support).\n\nUsage:\n  mise-dotfiles-uninstall [options]\n\nOptions:\n")
 		fmt.Fprintf(os.Stderr, "  -c string  Path to mise.toml configuration file (default \"mise.toml\")\n")
 		fmt.Fprintf(os.Stderr, "  -v         Display version information\n")
 	}
