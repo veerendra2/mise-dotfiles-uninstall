@@ -1,37 +1,142 @@
 package main
 
 import (
-	"log/slog"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 
-	"github.com/alecthomas/kong"
-	"github.com/veerendra2/gopackages/slogger"
-	"github.com/veerendra2/gopackages/version"
+	"github.com/pelletier/go-toml/v2"
 )
 
-const appName = "my-app"
+var Version = "dev"
 
-var cli struct {
-	Log     slogger.Config   `embed:"" prefix:"log." envprefix:"LOG_"`
-	Version kong.VersionFlag `name:"version" help:"Print version information and exit"`
+type Config struct {
+	Settings map[string]any `toml:"settings"`
+	Dotfiles map[string]any `toml:"dotfiles"`
 }
 
 func main() {
-	kongCtx := kong.Parse(&cli,
-		kong.Name(appName),
-		kong.Description("My app."),
-		kong.UsageOnError(),
-		kong.ConfigureHelp(kong.HelpOptions{
-			Compact: true,
-		}),
-		kong.Vars{
-			"version": version.Version,
-		},
-	)
+	var configFile string
+	var showVersion bool
 
-	kongCtx.FatalIfErrorf(kongCtx.Error)
+	flag.StringVar(&configFile, "config", "mise.toml", "path to mise.toml configuration file")
+	flag.StringVar(&configFile, "c", "mise.toml", "path to mise.toml configuration file (shorthand)")
+	flag.BoolVar(&showVersion, "version", false, "display version information")
+	flag.BoolVar(&showVersion, "v", false, "display version information (shorthand)")
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "mise-dotfiles-uninstall - The missing uninstaller companion for mise's dotfiles. (Until native support)\n\nUsage:\n  mise-dotfiles-uninstall [options]\n\nOptions:\n")
+		flag.PrintDefaults()
+	}
+	flag.Parse()
 
-	slog.SetDefault(slogger.New(cli.Log))
+	if showVersion {
+		fmt.Printf("mise-dotfiles-uninstall version %s\n", Version)
+		return
+	}
 
-	slog.Info("Version information", version.Info()...)
-	slog.Info("Build context", version.BuildContext()...)
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	if absConfig, err := filepath.Abs(configFile); err == nil {
+		configFile = absConfig
+	}
+
+	data, err := os.ReadFile(configFile)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	var config Config
+	if err := toml.Unmarshal(data, &config); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+
+	expand := func(p string) string {
+		if p == "~" {
+			return home
+		}
+		if strings.HasPrefix(p, "~/") {
+			return filepath.Join(home, p[2:])
+		}
+		return p
+	}
+
+	// Extract and expand dotfiles.root
+	var rootDir string
+	if settings, ok := config.Settings["dotfiles"].(map[string]any); ok {
+		if r, ok := settings["root"].(string); ok {
+			rootDir = r
+		}
+	}
+	if rootDir == "" {
+		if r, ok := config.Settings["dotfiles.root"].(string); ok {
+			rootDir = r
+		}
+	}
+
+	var expandedRootDir string
+	if rootDir != "" {
+		expandedRootDir = expand(rootDir)
+	} else {
+		expandedRootDir = filepath.Dir(configFile)
+	}
+
+	unlink := func(path string) {
+		if info, err := os.Lstat(path); err == nil && info.Mode()&os.ModeSymlink != 0 {
+			if os.Remove(path) == nil {
+				pretty := path
+				if home != "" && strings.HasPrefix(path, home) {
+					pretty = "~" + strings.TrimPrefix(path, home)
+				}
+				fmt.Printf("✓ Unlinked: %s\n", pretty)
+			}
+		}
+	}
+
+	for target, valRaw := range config.Dotfiles {
+		src := ""
+		mode := "symlink"
+
+		switch val := valRaw.(type) {
+		case string:
+			src = val
+		case map[string]any:
+			if s, ok := val["source"].(string); ok {
+				src = s
+			} else if p, ok := val["path"].(string); ok {
+				src = p
+			}
+			if m, ok := val["mode"].(string); ok {
+				mode = m
+			}
+		}
+
+		targetPath := expand(target)
+
+		var srcPath string
+		if src != "" {
+			expandedSrc := expand(src)
+			if filepath.IsAbs(expandedSrc) || strings.HasPrefix(src, "~") {
+				srcPath = expandedSrc
+			} else {
+				srcPath = filepath.Join(expandedRootDir, expandedSrc)
+			}
+		}
+
+		if mode == "symlink-each" {
+			entries, _ := os.ReadDir(srcPath)
+			for _, entry := range entries {
+				unlink(filepath.Join(targetPath, entry.Name()))
+			}
+		} else {
+			unlink(targetPath)
+		}
+	}
 }

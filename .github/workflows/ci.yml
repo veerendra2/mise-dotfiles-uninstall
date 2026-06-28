@@ -10,10 +10,10 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v6.4.0
         with:
           go-version-file: "go.mod"
           cache: true
@@ -30,17 +30,13 @@ jobs:
     runs-on: ubuntu-slim
     steps:
       - name: Check out code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Setup Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v6.4.0
         with:
           go-version-file: "go.mod"
           cache: true
 
-      - name: Install Task
-        uses: go-task/setup-task@v2
-
       - name: Run Tests
-        run: |
-          task tests
+        run: go test -v ./...
