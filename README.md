@@ -20,13 +20,8 @@ Usage:
   mise-dotfiles-uninstall [options]
 
 Options:
-  -c string
-    	path to mise.toml configuration file (shorthand) (default "mise.toml")
-  -config string
-    	path to mise.toml configuration file (default "mise.toml")
-  -v	display version information (shorthand)
-  -version
-    	display version information
+  -c string  Path to mise.toml configuration file (default "mise.toml")
+  -v         Display version information
 ```
 
 ## Installation
