@@ -1,5 +1,10 @@
 # mise-dotfiles-uninstall
 
+> [!WARNING]
+> **This repository is archived and no longer maintained.**
+>
+> Please use [**symlinkr**](https://github.com/veerendra2/symlinkr) instead — a complete, standalone declarative symlink and dotfiles manager with built-in apply, dry-run, recursive directory mirroring, and uninstall (`-r`) support.
+
 The missing uninstaller companion for mise's dotfiles (Until native support).
 
 ## Why?
